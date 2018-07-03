@@ -1,0 +1,16 @@
+build*
+*~
+cpplint.py
+third_party/*
+lib*a
+
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+linked_list_test
+
+*.dSYM
+\#*\#
