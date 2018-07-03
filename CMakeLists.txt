@@ -34,7 +34,7 @@ IF(SYSTEM_HAS_TR1_TUPLE)
 	"-DGTEST_USE_OWN_TR1_TUPLE=0")
 ENDIF(SYSTEM_HAS_TR1_TUPLE)
 
-ADD_EXECUTABLE(linked_list_test linked_list_test.cc mutex_wrapper.cc perf_measurement.cc)
+ADD_EXECUTABLE(linked_list_test linked_list_test.cc mutex_wrapper.cc perf_measurement.cc ${SOURCE_DIR}/googletest/src/gtest-all.cc)
 ADD_DEPENDENCIES(linked_list_test googletest)
 set_property(TARGET linked_list_test PROPERTY DEPENDS googletest)
 

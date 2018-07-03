@@ -10,6 +10,11 @@ map<string, pair<unique_ptr<mutex>,
                  unique_ptr<vector<nanoseconds>>>> measurements;
 mutex measurements_lock;
 
+void clearResults() {
+  lock_guard<mutex> guard(measurements_lock);
+  measurements.clear();
+}
+
 void writeMeasurementsToFile(string output_filename) {
   ofstream of(output_filename, ios::out | ios::trunc);
   for (const auto& measurement : measurements) {

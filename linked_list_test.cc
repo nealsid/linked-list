@@ -1,3 +1,4 @@
+#include <gtest/gtest.h>
 #include <iostream>
 #include <thread>
 
@@ -7,51 +8,67 @@
 using namespace linkedlist;
 using namespace std;
 
-void f(int a) {
-  cout << a << endl;
+class LinkedListTest : public ::testing::Test {
+  virtual void SetUp() {
+    perf_measurement::clearResults();
+  }
+};
+
+TEST_F(LinkedListTest, SingleThreadedTest) {
+  LockedLinkedList<int> linkedList;
+  for (int i = 1000000; i >= 0; --i) {
+    linkedList.PushFront(i);
+  }
+  vector<int> ints;
+  ints.reserve(1000000);
+  for (int i = 0; i < 1000000; ++i) {
+    ints.push_back(linkedList.PopFront());
+  }
+  for (int i = 0; i < 1000000; ++i) {
+    ASSERT_EQ(ints[i], i);
+  }
+  perf_measurement::writeMeasurementsToFile("no_contention_measurements.txt");
 }
 
-void noarg() {
-  cout << "noarg" << endl;
-}
-
-int main(int argc, char* argv[]) {
-  //  measurer(f, 5);
-  
+TEST_F(LinkedListTest, MultithreadedTest) {
   LockedLinkedList<int> linkedList;
   vector<thread*> threads;
   
+  // 10 threads, 100000 distinct numbers each.
   for (int i = 0; i < 10; ++i) {
     threads.push_back(new thread([&,i] () {
                                    for (int j = i * 100000; j < (i * 100000) + 100000; j++) {
-                                     linkedList.PushFront(j);
+                                       linkedList.PushFront(j);
                                    }
                                  }));
   }
+  
   for (auto t : threads) {
     t->join();
   }
 
-  linkedList.DumpListToFile("output.txt");
-  perf_measurement::writeMeasurementsToFile("perf_measurements.txt");
-  
-  // for (int i = 0; i < 400; ++i) {
-  //   cout << "PopFronting " << i << endl;
-  //   int val = linkedList.PopFront();
-  //   cout << "\t" << val << endl;
-  // }
+  // Now grab all the numbers from the list, sort and compare to what
+  // we expect.
+  // Initializing the vector to 1M elements and then immediately
+  // overwriting it is wasteful, but it lets me be really clever with
+  // std::generate to fill the vector with elements from the list.
+  vector<int> ints(1000000);
+  std::generate(ints.begin(), ints.end(),
+                [&] () {
+                  return linkedList.PopFront();
+                });
 
-  // threads.clear();
-  // for (int i = 0; i < 20; ++i) {
-  //   threads.push_back(new thread([&,i] () {
-  //                                  for (int j = i * 20; j < (i * 20) + 20; j++) {
-  //                                    linkedList.PushFront(j);
-  //                                  }
-  //                                }));
-  // }
-  // for (auto t : threads) {
-  //   t->join();
-  // }
+  std::sort(ints.begin(), ints.end());
 
-  // linkedList.DumpList();
+  for (int i = 0; i < 1000000; ++i) {
+    ASSERT_EQ(ints[i], i);
+  }
+  perf_measurement::writeMeasurementsToFile("contention_measurements.txt");
 }
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
+
+ 
