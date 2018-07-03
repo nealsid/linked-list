@@ -14,7 +14,7 @@ MutexWrapper::MutexWrapper(const string& name) {
 }
 
 void MutexWrapper::lock() {
-  // cout << "Locking " << this->name << " by thread " << this_thread::get_id() << endl;
+  //  cout << "Locking " << this->name << " by thread " << this_thread::get_id() << endl;
   measurer("lock", std::bind(&mutex::lock, &m));
   this->owning_thread_id = this_thread::get_id();
 }
@@ -24,7 +24,7 @@ bool MutexWrapper::try_lock() {
 }
 
 void MutexWrapper::unlock() {
-  //  cout << "Unlocking " << this->name << endl;
+  //   cout << "Unlocking " << this->name << endl;
   measurer("unlock", std::bind(&mutex::unlock, &m));
 }
 

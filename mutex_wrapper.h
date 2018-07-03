@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <string>
+#include <thread>
 
 using namespace std;
 
@@ -10,6 +11,11 @@ namespace linkedlist {
 class MutexWrapper {
  public:  
     MutexWrapper(const string& name);
+
+    MutexWrapper(const MutexWrapper& other) = delete;
+    MutexWrapper(MutexWrapper&& other) = delete;
+    void operator=(const MutexWrapper& other) = delete;
+    
     void lock();
     bool try_lock();
     void unlock();
