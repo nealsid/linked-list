@@ -37,6 +37,11 @@ void LockedLinkedList<T>::PushBack(const T& data) {
 }
 
 template <typename T>
+bool LockedLinkedList<T>::IsEmpty() {
+  return head_->next == tail_;
+}
+
+template <typename T>
 T LockedLinkedList<T>::PopFront() {
   LinkedListNode<T>* node;
 

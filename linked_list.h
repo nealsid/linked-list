@@ -23,6 +23,7 @@ class LinkedList {
 public:
   virtual void PushBack(const T& data) = 0;
   virtual void PushFront(const T& data) = 0;
+  virtual bool IsEmpty() = 0;
   
   virtual T PopFront() = 0;
   virtual T PopBack() = 0;
@@ -35,6 +36,7 @@ class LockedLinkedList : public LinkedList<T> {
   LockedLinkedList();
   void PushFront(const T& data);
   void PushBack(const T& data);
+  bool IsEmpty();
   
   T PopFront();
   T PopBack();
