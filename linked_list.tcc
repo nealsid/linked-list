@@ -27,7 +27,6 @@ template <typename T>
 void LockedLinkedList<T>::PushBack(const T& data) {
   LinkedListNode<T>* node = new LinkedListNode<T>();
   node->data = data;
-  node->next = nullptr;
 
   lock_guard<MutexWrapper> lock(tail_dummy_node_mutex_);
   node->prev = tail_->prev;
