@@ -63,10 +63,12 @@ typename std::map<S, T>::iterator findOrCreateMapEntry(map<S, T>& map,
     lock_guard<mutex> guard(map_mutex);
     entry = map.find(key);
     if (entry == map.end()) {
+      auto v = new vector<nanoseconds>();
+      v->reserve(10000);
       auto insertion_result =
           map.insert(make_pair(key,
                                make_pair(new mutex(),
-                                         new vector<nanoseconds>(10000))));
+                                         v)));
       entry = insertion_result.first;
     }
   }
