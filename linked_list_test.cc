@@ -19,9 +19,12 @@ protected:
 TEST_F(LinkedListTest, SingleThreadedTest) {
   LockedLinkedList<int> linkedList;
 
-  for (int i = NUM_ELEMENTS - 1; i >= 0; --i) {
-    linkedList.PushFront(i);
-  }
+  perf_measurement::measurer("insertion-1m",
+			     [&] () {
+			       for (int i = NUM_ELEMENTS - 1; i >= 0; --i) {
+				 linkedList.PushFront(i);
+			       }
+			     });
 
   vector<int> ints;
   ints.reserve(NUM_ELEMENTS);
@@ -35,7 +38,7 @@ TEST_F(LinkedListTest, SingleThreadedTest) {
   for (int i = 0; i < NUM_ELEMENTS; ++i) {
     ASSERT_EQ(ints[i], i);
   }
-  perf_measurement::writeMeasurementsToFile("no_contention_measurements.txt");
+  perf_measurement::writeMeasurementsToFile("singlethreaded_contention_measurements.txt");
 }
 
 TEST_F(LinkedListTest, MultithreadedTest) {
@@ -93,7 +96,7 @@ TEST_F(LinkedListTest, MultithreadedTest) {
   for (int i = 0; i < NUM_ELEMENTS; ++i) {
     ASSERT_EQ(ints[i], i);
   }
-  perf_measurement::writeMeasurementsToFile("contention_measurements.txt");
+  perf_measurement::writeMeasurementsToFile("multithreaded_contention_measurements.txt");
 }
 
 TEST_F(LinkedListTest, SingleThreadedLockFreeTest) {
@@ -115,7 +118,7 @@ TEST_F(LinkedListTest, SingleThreadedLockFreeTest) {
   for (int i = 0; i < NUM_ELEMENTS; ++i) {
     ASSERT_EQ(ints[i], i);
   }
-  perf_measurement::writeMeasurementsToFile("lock_free_single_thread_contention_measurements.txt");
+  perf_measurement::writeMeasurementsToFile("singlethreaded_lockfree_contention_measurements.txt");
 }
 
 TEST_F(LinkedListTest, MultithreadedLockFreeTest) {
@@ -172,7 +175,7 @@ TEST_F(LinkedListTest, MultithreadedLockFreeTest) {
   for (int i = 0; i < NUM_ELEMENTS; ++i) {
     ASSERT_EQ(ints[i], i);
   }
-  perf_measurement::writeMeasurementsToFile("lockfree_multithreaded_contention_measurements.txt");
+  perf_measurement::writeMeasurementsToFile("multithreaded_lockfree_contention_measurements.txt");
 }
 
 int main(int argc, char **argv) {

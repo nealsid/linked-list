@@ -16,7 +16,7 @@ void clearResults() {
 }
 
 void writeMeasurementsToFile(string output_filename) {
-  ofstream of(output_filename, ios::out | ios::trunc);
+  ofstream of(output_filename, ios::out | ios::app);
   for (const auto& measurement : measurements) {
     of << measurement.first;
     nanoseconds sum;
