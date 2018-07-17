@@ -8,6 +8,8 @@
 using namespace linkedlist;
 using namespace std;
 
+// TODO clean this test case file up, consolidate code, make it pretty, etc.
+
 class LinkedListTest : public ::testing::Test {
   virtual void SetUp() {
     perf_measurement::clearResults();
@@ -119,6 +121,63 @@ TEST_F(LinkedListTest, SingleThreadedLockFreeTest) {
     ASSERT_EQ(ints[i], i);
   }
   perf_measurement::writeMeasurementsToFile("singlethreaded_lockfree_contention_measurements.txt");
+}
+
+TEST_F(LinkedListTest, PopPushRaceConditionDeathTest) {
+  LockFreeLinkedList<int> linkedList;
+  vector<thread*> threads;
+  
+  int NUM_THREADS = 10;
+  int NUM_ELEMENTS_PER_THREAD = NUM_ELEMENTS / NUM_THREADS;
+  // 10 threads, 100000 distinct numbers each.
+  std::condition_variable thread_start;
+  std::mutex thread_start_mutex;
+  // I have to put the entire test case inside the assert_death macro
+  // because otherwise it complains about the threads that are created
+  // before it forks(), so, this way, the threads are created after
+  // the fork.
+  ASSERT_DEATH({
+      for (int i = 0; i < NUM_THREADS; ++i) {
+	threads.push_back(new thread([&,i] () {
+				       {
+					 unique_lock<mutex> lock(thread_start_mutex);
+					 thread_start.wait(lock);
+				       }
+				       int thread_starting_point = i * NUM_ELEMENTS_PER_THREAD;
+				       for (int j = thread_starting_point;
+					    j < thread_starting_point + NUM_ELEMENTS_PER_THREAD;
+					    j++) {
+					 linkedList.PushFront(j);
+				       }
+				     }));
+      }
+			     
+      for (int i = 0; i < NUM_THREADS; ++i) {
+	threads.push_back(new thread([&,i] () {
+				       {
+					 unique_lock<mutex> lock(thread_start_mutex);
+					 thread_start.wait(lock);
+				       }
+				       std::this_thread::sleep_for((milliseconds)500);
+				       for (int j = 0;
+					    j < NUM_ELEMENTS / 2;
+					    j++) {
+					 linkedList.PopFront();
+				       }
+				     }));
+      }
+
+
+      // See above for comment about sleep.
+      std::this_thread::sleep_for((milliseconds)500);
+      thread_start_mutex.lock();
+      thread_start.notify_all();
+      thread_start_mutex.unlock();
+      for (auto t : threads) {
+	t->join();
+      }
+    }, "");
+
 }
 
 TEST_F(LinkedListTest, MultithreadedLockFreeTest) {
