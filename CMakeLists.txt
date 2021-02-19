@@ -6,7 +6,7 @@ PROJECT(linked-list)
 
 # Set to use C++11
 
-ADD_DEFINITIONS(-std=c++11)
+ADD_DEFINITIONS(-std=c++2a)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # External projects for parquet-format and thrift
@@ -37,4 +37,3 @@ ENDIF(SYSTEM_HAS_TR1_TUPLE)
 ADD_EXECUTABLE(linked_list_test linked_list_test.cc mutex_wrapper.cc perf_measurement.cc ${SOURCE_DIR}/googletest/src/gtest-all.cc)
 ADD_DEPENDENCIES(linked_list_test googletest)
 set_property(TARGET linked_list_test PROPERTY DEPENDS googletest)
-
