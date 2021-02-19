@@ -46,7 +46,7 @@ TEST_F(LinkedListTest, SingleThreadedTest) {
 TEST_F(LinkedListTest, MultithreadedTest) {
   LockedLinkedList<int> linkedList;
   vector<thread*> threads;
-  
+
   int NUM_THREADS = 10;
   int NUM_ELEMENTS_PER_THREAD = NUM_ELEMENTS / NUM_THREADS;
   // 10 threads, 100000 distinct numbers each.
@@ -67,7 +67,7 @@ TEST_F(LinkedListTest, MultithreadedTest) {
 				   }
 				 }));
   }
-			     
+
   // I am seeing that the main thread grabs thread_start_mutex before
   // the last thread created above, preventing that thread from
   // waiting on the condition variable in time.
@@ -90,9 +90,8 @@ TEST_F(LinkedListTest, MultithreadedTest) {
                 [&] () {
                   return linkedList.PopFront();
                 });
-
   ASSERT_TRUE(linkedList.IsEmpty());
-  
+
   std::sort(ints.begin(), ints.end());
 
   for (int i = 0; i < NUM_ELEMENTS; ++i) {
@@ -101,145 +100,143 @@ TEST_F(LinkedListTest, MultithreadedTest) {
   perf_measurement::writeMeasurementsToFile("multithreaded_contention_measurements.txt");
 }
 
-TEST_F(LinkedListTest, SingleThreadedLockFreeTest) {
-  LockFreeLinkedList<int> linkedList;
+// TEST_F(LinkedListTest, SingleThreadedLockFreeTest) {
+//   LockFreeLinkedList<int> linkedList;
 
-  for (int i = NUM_ELEMENTS - 1; i >= 0; --i) {
-    linkedList.PushFront(i);
-  }
+//   for (int i = NUM_ELEMENTS - 1; i >= 0; --i) {
+//     linkedList.PushFront(i);
+//   }
 
-  vector<int> ints;
-  ints.reserve(NUM_ELEMENTS);
+//   vector<int> ints;
+//   ints.reserve(NUM_ELEMENTS);
 
-  for (int i = 0; i < NUM_ELEMENTS; ++i) {
-    ints.push_back(linkedList.PopFront());
-  }
+//   for (int i = 0; i < NUM_ELEMENTS; ++i) {
+//     ints.push_back(linkedList.PopFront());
+//   }
 
-  ASSERT_TRUE(linkedList.IsEmpty());
+//   ASSERT_TRUE(linkedList.IsEmpty());
 
-  for (int i = 0; i < NUM_ELEMENTS; ++i) {
-    ASSERT_EQ(ints[i], i);
-  }
-  perf_measurement::writeMeasurementsToFile("singlethreaded_lockfree_contention_measurements.txt");
-}
+//   for (int i = 0; i < NUM_ELEMENTS; ++i) {
+//     ASSERT_EQ(ints[i], i);
+//   }
+//   perf_measurement::writeMeasurementsToFile("singlethreaded_lockfree_contention_measurements.txt");
+// }
 
-TEST_F(LinkedListTest, PopPushRaceConditionDeathTest) {
-  LockFreeLinkedList<int> linkedList;
-  vector<thread*> threads;
-  
-  int NUM_THREADS = 10;
-  int NUM_ELEMENTS_PER_THREAD = NUM_ELEMENTS / NUM_THREADS;
-  // 10 threads, 100000 distinct numbers each.
-  std::condition_variable thread_start;
-  std::mutex thread_start_mutex;
-  // I have to put the entire test case inside the assert_death macro
-  // because otherwise it complains about the threads that are created
-  // before it forks(), so, this way, the threads are created after
-  // the fork.
-  ASSERT_DEATH({
-      for (int i = 0; i < NUM_THREADS; ++i) {
-	threads.push_back(new thread([&,i] () {
-				       {
-					 unique_lock<mutex> lock(thread_start_mutex);
-					 thread_start.wait(lock);
-				       }
-				       int thread_starting_point = i * NUM_ELEMENTS_PER_THREAD;
-				       for (int j = thread_starting_point;
-					    j < thread_starting_point + NUM_ELEMENTS_PER_THREAD;
-					    j++) {
-					 linkedList.PushFront(j);
-				       }
-				     }));
-      }
-			     
-      for (int i = 0; i < NUM_THREADS; ++i) {
-	threads.push_back(new thread([&,i] () {
-				       {
-					 unique_lock<mutex> lock(thread_start_mutex);
-					 thread_start.wait(lock);
-				       }
-				       std::this_thread::sleep_for((milliseconds)500);
-				       for (int j = 0;
-					    j < NUM_ELEMENTS / 2;
-					    j++) {
-					 linkedList.PopFront();
-				       }
-				     }));
-      }
+// TEST_F(LinkedListTest, PopPushRaceConditionDeathTest) {
+//   LockFreeLinkedList<int> linkedList;
+//   vector<thread*> threads;
+
+//   int NUM_THREADS = 10;
+//   int NUM_ELEMENTS_PER_THREAD = NUM_ELEMENTS / NUM_THREADS;
+//   // 10 threads, 100000 distinct numbers each.
+//   std::condition_variable thread_start;
+//   std::mutex thread_start_mutex;
+//   // I have to put the entire test case inside the assert_death macro
+//   // because otherwise it complains about the threads that are created
+//   // before it forks(), so, this way, the threads are created after
+//   // the fork.
+//   ASSERT_DEATH({
+//       for (int i = 0; i < NUM_THREADS; ++i) {
+// 	threads.push_back(new thread([&,i] () {
+// 				       {
+// 					 unique_lock<mutex> lock(thread_start_mutex);
+// 					 thread_start.wait(lock);
+// 				       }
+// 				       int thread_starting_point = i * NUM_ELEMENTS_PER_THREAD;
+// 				       for (int j = thread_starting_point;
+// 					    j < thread_starting_point + NUM_ELEMENTS_PER_THREAD;
+// 					    j++) {
+// 					 linkedList.PushFront(j);
+// 				       }
+// 				     }));
+//       }
+
+//       for (int i = 0; i < NUM_THREADS; ++i) {
+// 	threads.push_back(new thread([&,i] () {
+// 				       {
+// 					 unique_lock<mutex> lock(thread_start_mutex);
+// 					 thread_start.wait(lock);
+// 				       }
+// 				       std::this_thread::sleep_for((milliseconds)500);
+// 				       for (int j = 0;
+// 					    j < NUM_ELEMENTS / 2;
+// 					    j++) {
+// 					 linkedList.PopFront();
+// 				       }
+// 				     }));
+//       }
 
 
-      // See above for comment about sleep.
-      std::this_thread::sleep_for((milliseconds)500);
-      thread_start_mutex.lock();
-      thread_start.notify_all();
-      thread_start_mutex.unlock();
-      for (auto t : threads) {
-	t->join();
-      }
-    }, "");
+//       // See above for comment about sleep.
+//       std::this_thread::sleep_for((milliseconds)500);
+//       thread_start_mutex.lock();
+//       thread_start.notify_all();
+//       thread_start_mutex.unlock();
+//       for (auto t : threads) {
+// 	t->join();
+//       }
+//     }, "");
 
-}
+// }
 
-TEST_F(LinkedListTest, MultithreadedLockFreeTest) {
-  LockFreeLinkedList<int> linkedList;
-  vector<thread*> threads;
-  
-  int NUM_THREADS = 10;
-  int NUM_ELEMENTS_PER_THREAD = NUM_ELEMENTS / NUM_THREADS;
-  // 10 threads, 100000 distinct numbers each.
-  std::condition_variable thread_start;
-  std::mutex thread_start_mutex;
-  for (int i = 0; i < NUM_THREADS; ++i) {
-    threads.push_back(new thread([&,i] () {
-				   {
-				     unique_lock<mutex> lock(thread_start_mutex);
-				     thread_start.wait(lock);
-				   }
-				   int thread_starting_point = i * NUM_ELEMENTS_PER_THREAD;
-				   for (int j = thread_starting_point;
-					j < thread_starting_point + NUM_ELEMENTS_PER_THREAD;
-					j++) {
-				     linkedList.PushFront(j);
-				   }
-				 }));
-  }
-			     
+// TEST_F(LinkedListTest, MultithreadedLockFreeTest) {
+//   LockFreeLinkedList<int> linkedList;
+//   vector<thread*> threads;
 
-  // See above for comment about sleep.
-  std::this_thread::sleep_for((milliseconds)500);
-  perf_measurement::measurer("insertion-1m", [&] () {
-					       thread_start_mutex.lock();
-					       thread_start.notify_all();
-					       thread_start_mutex.unlock();
-					       for (auto t : threads) {
-						 t->join();
-					       }
-					     });
+//   int NUM_THREADS = 10;
+//   int NUM_ELEMENTS_PER_THREAD = NUM_ELEMENTS / NUM_THREADS;
+//   // 10 threads, 100000 distinct numbers each.
+//   std::condition_variable thread_start;
+//   std::mutex thread_start_mutex;
+//   for (int i = 0; i < NUM_THREADS; ++i) {
+//     threads.push_back(new thread([&,i] () {
+// 				   {
+// 				     unique_lock<mutex> lock(thread_start_mutex);
+// 				     thread_start.wait(lock);
+// 				   }
+// 				   int thread_starting_point = i * NUM_ELEMENTS_PER_THREAD;
+// 				   for (int j = thread_starting_point;
+// 					j < thread_starting_point + NUM_ELEMENTS_PER_THREAD;
+// 					j++) {
+// 				     linkedList.PushFront(j);
+// 				   }
+// 				 }));
+//   }
 
-  // Now grab all the numbers from the list, sort and compare to what
-  // we expect.
-  // Initializing the vector to 1M elements and then immediately
-  // overwriting it is wasteful, but it lets me be really clever with
-  // std::generate to fill the vector with elements from the list.
-  vector<int> ints(NUM_ELEMENTS);
-  std::generate(ints.begin(), ints.end(),
-                [&] () {
-                  return linkedList.PopFront();
-                });
 
-  ASSERT_TRUE(linkedList.IsEmpty());
-  
-  std::sort(ints.begin(), ints.end());
+//   // See above for comment about sleep.
+//   std::this_thread::sleep_for((milliseconds)500);
+//   perf_measurement::measurer("insertion-1m", [&] () {
+// 					       thread_start_mutex.lock();
+// 					       thread_start.notify_all();
+// 					       thread_start_mutex.unlock();
+// 					       for (auto t : threads) {
+// 						 t->join();
+// 					       }
+// 					     });
 
-  for (int i = 0; i < NUM_ELEMENTS; ++i) {
-    ASSERT_EQ(ints[i], i);
-  }
-  perf_measurement::writeMeasurementsToFile("multithreaded_lockfree_contention_measurements.txt");
-}
+//   // Now grab all the numbers from the list, sort and compare to what
+//   // we expect.
+//   // Initializing the vector to 1M elements and then immediately
+//   // overwriting it is wasteful, but it lets me be really clever with
+//   // std::generate to fill the vector with elements from the list.
+//   vector<int> ints(NUM_ELEMENTS);
+//   std::generate(ints.begin(), ints.end(),
+//                 [&] () {
+//                   return linkedList.PopFront();
+//                 });
+
+//   ASSERT_TRUE(linkedList.IsEmpty());
+
+//   std::sort(ints.begin(), ints.end());
+
+//   for (int i = 0; i < NUM_ELEMENTS; ++i) {
+//     ASSERT_EQ(ints[i], i);
+//   }
+//   perf_measurement::writeMeasurementsToFile("multithreaded_lockfree_contention_measurements.txt");
+// }
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-
- 

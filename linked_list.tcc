@@ -1,7 +1,7 @@
 template <typename T>
 LockedLinkedList<T>::LockedLinkedList() :
-  head_(new LinkedListNode<T>()),
-  tail_(new LinkedListNode<T>()),
+  head_(make_shared<LinkedListNode<T>>()),
+  tail_(make_shared<LinkedListNode<T>>()),
   head_dummy_node_mutex_("head mutex"),
   tail_dummy_node_mutex_("tail mutex") {
   head_->next = tail_;
@@ -12,8 +12,25 @@ LockedLinkedList<T>::LockedLinkedList() :
 
 template <typename T>
 void LockedLinkedList<T>::PushFront(const T& data) {
-  //  cout << "PushFront " << data << endl;
-  LinkedListNode<T>* node = new LinkedListNode<T>();
+  auto node = make_shared<LinkedListNode<T>>();
+  node->data = data;
+
+  lock_guard<MutexWrapper> lock(head_dummy_node_mutex_);
+  node->next = head_->next;
+  node->next->prev = node;
+  head_->next = node;
+  node->prev = head_;
+}
+
+template <typename T>
+void LockedLinkedList<T>::PushFront(T&& data) {
+  this->PushFrontHelper(data);
+}
+
+template <typename T>
+template <typename DataReference>
+void LockedLinkedList<T>::PushFrontHelper(DataReference&& data) {
+  auto node = make_shared<LinkedListNode<T>>();
   node->data = data;
 
   lock_guard<MutexWrapper> lock(head_dummy_node_mutex_);
@@ -25,7 +42,7 @@ void LockedLinkedList<T>::PushFront(const T& data) {
 
 template <typename T>
 void LockedLinkedList<T>::PushBack(const T& data) {
-  LinkedListNode<T>* node = new LinkedListNode<T>();
+  auto node = make_shared<LinkedListNode<T>>();
   node->data = data;
 
   lock_guard<MutexWrapper> lock(tail_dummy_node_mutex_);
@@ -36,13 +53,18 @@ void LockedLinkedList<T>::PushBack(const T& data) {
 }
 
 template <typename T>
+void LockedLinkedList<T>::PushBack(const T&& data) {
+  return this->PushBack(data);
+}
+
+template <typename T>
 bool LockedLinkedList<T>::IsEmpty() {
   return head_->next == tail_;
 }
 
 template <typename T>
 T LockedLinkedList<T>::PopFront() {
-  LinkedListNode<T>* node;
+  shared_ptr<LinkedListNode<T>> node;
 
   {
     lock_guard<MutexWrapper> lock(head_dummy_node_mutex_);
@@ -51,14 +73,12 @@ T LockedLinkedList<T>::PopFront() {
     head_->next->prev = head_;
   }
 
-  T retVal = std::move(node->data);
-  delete node;
-  return std::move(retVal);
+  return node->data;
 }
 
 template <typename T>
 T LockedLinkedList<T>::PopBack() {
-  LinkedListNode<T>* node;
+  shared_ptr<LinkedListNode<T>> node;
 
   {
     lock_guard<MutexWrapper> lock(tail_dummy_node_mutex_);
@@ -67,15 +87,13 @@ T LockedLinkedList<T>::PopBack() {
     tail_->prev->next = tail_;
   }
 
-  T retVal = std::move(node->data);
-  delete node;
-  return std::move(retVal);
+  return node->data;
 }
 
 template <typename T>
 void LockedLinkedList<T>::DumpListToFile(string filename) const {
   ofstream of(filename);
-  LinkedListNode<T>* node = head_->next;
+  auto node = head_->next;
   while (node != tail_) {
     of << node->data << endl;
     node = node->next;

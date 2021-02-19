@@ -4,25 +4,23 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.11.0)
 PROJECT(linked-list)
 
-# Set to use C++11
+# Set to use C++20
 
 ADD_DEFINITIONS(-std=c++2a)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-# External projects for parquet-format and thrift
+# External projects for Google Test.
 INCLUDE(ExternalProject)
 INCLUDE(GoogleTestCMakeLists)
 INCLUDE(CheckIncludeFileCXX)
 
 #INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
-#ExternalProject_Get_Property(google-glog install_dir)
-#include_directories (${install_dir}/include)
-
 ADD_CUSTOM_COMMAND(
    OUTPUT ${SOURCE_DIR}/src/gtest-all.cc
    COMMAND "touch ${SOURCE_DIR}/src/gtest-all.cc"
 )
+
 ExternalProject_Get_Property(googletest SOURCE_DIR)
 INCLUDE_DIRECTORIES(${SOURCE_DIR}/googletest ${SOURCE_DIR}/googletest/include)
 

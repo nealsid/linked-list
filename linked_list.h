@@ -13,15 +13,17 @@ namespace linkedlist {
 template <typename T>
 struct LinkedListNode {
   T data;
-  LinkedListNode<T>* next;
-  LinkedListNode<T>* prev;
+  shared_ptr<LinkedListNode<T>> next;
+  shared_ptr<LinkedListNode<T>> prev;
 };
 
 template <typename T>
 class LinkedList {
 public:
   virtual void PushBack(const T& data) = 0;
+  virtual void PushBack(const T&& data) { }
   virtual void PushFront(const T& data) = 0;
+  virtual void PushFront(const T&& data) { }
   virtual bool IsEmpty() = 0;
 
   virtual T PopFront() = 0;
@@ -35,6 +37,9 @@ public:
   LockedLinkedList();
   void PushFront(const T& data);
   void PushBack(const T& data);
+  void PushBack(const T&& data);
+  void PushFront(const T&& data);
+
   bool IsEmpty();
 
   T PopFront();
@@ -43,9 +48,9 @@ public:
 void DumpListToFile(string filename) const;
 
 private:
-  LinkedListNode<T>* head_;
+  std::shared_ptr<LinkedListNode<T>> head_;
   MutexWrapper head_dummy_node_mutex_;
-  LinkedListNode<T>* tail_;
+  std::shared_ptr<LinkedListNode<T>> tail_;
   MutexWrapper tail_dummy_node_mutex_;
 };
 
@@ -75,8 +80,12 @@ private:
   LockFreeLinkedListDummyNode<T>* head_;
   LockFreeLinkedListDummyNode<T>* tail_;
 
+  // Helper method to use universal references so we don't have to
+  // duplicate code.
+  template <typename DataReference>
+  void PushFrontHelper(DataReference&& data);
 };
 
 #include "linked_list.tcc"
-#include "lock_free_linked_list.tcc"
+//#include "lock_free_linked_list.tcc"
 }
