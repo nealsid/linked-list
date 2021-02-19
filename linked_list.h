@@ -21,9 +21,9 @@ template <typename T>
 class LinkedList {
 public:
   virtual void PushBack(const T& data) = 0;
-  virtual void PushBack(const T&& data) { }
+  virtual void PushBack(T&& data) { }
   virtual void PushFront(const T& data) = 0;
-  virtual void PushFront(const T&& data) { }
+  virtual void PushFront(T&& data) { }
   virtual bool IsEmpty() = 0;
 
   virtual T PopFront() = 0;
@@ -37,8 +37,8 @@ public:
   LockedLinkedList();
   void PushFront(const T& data);
   void PushBack(const T& data);
-  void PushBack(const T&& data);
-  void PushFront(const T&& data);
+  void PushBack(T&& data);
+  void PushFront(T&& data);
 
   bool IsEmpty();
 
@@ -69,6 +69,8 @@ public:
   LockFreeLinkedList();
   void PushFront(const T& data);
   void PushBack(const T& data);
+  void PushFront(T&& data);
+  void PushBack(T&& data);
   bool IsEmpty();
 
   T PopFront();
