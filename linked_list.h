@@ -9,21 +9,21 @@
 using namespace std;
 
 namespace linkedlist {
-  
+
 template <typename T>
 struct LinkedListNode {
   T data;
   LinkedListNode<T>* next;
   LinkedListNode<T>* prev;
 };
-  
+
 template <typename T>
 class LinkedList {
 public:
   virtual void PushBack(const T& data) = 0;
   virtual void PushFront(const T& data) = 0;
   virtual bool IsEmpty() = 0;
-  
+
   virtual T PopFront() = 0;
   virtual T PopBack() = 0;
 };
@@ -31,17 +31,17 @@ public:
 
 template<typename T>
 class LockedLinkedList : public LinkedList<T> {
- public:
+public:
   LockedLinkedList();
   void PushFront(const T& data);
   void PushBack(const T& data);
   bool IsEmpty();
-  
+
   T PopFront();
   T PopBack();
 
-  void DumpListToFile(string filename) const;
-    
+void DumpListToFile(string filename) const;
+
 private:
   LinkedListNode<T>* head_;
   MutexWrapper head_dummy_node_mutex_;
@@ -60,17 +60,17 @@ struct LockFreeLinkedListDummyNode : LinkedListNode<T> {
 
 template<typename T>
 class LockFreeLinkedList : public LinkedList<T> {
- public:
+public:
   LockFreeLinkedList();
   void PushFront(const T& data);
   void PushBack(const T& data);
   bool IsEmpty();
-  
+
   T PopFront();
   T PopBack();
 
   void DumpListToFile(string filename) const;
-    
+
 private:
   LockFreeLinkedListDummyNode<T>* head_;
   LockFreeLinkedListDummyNode<T>* tail_;

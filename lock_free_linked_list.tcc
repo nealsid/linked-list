@@ -33,30 +33,30 @@ void LockFreeLinkedList<T>::PushFront(const T& data) {
   // tail nodes):
 
   // nullptr <--  |--|-|    -->    |--|-|    -->     nullptr
-  //              |  | |           |  | |        
+  //              |  | |           |  | |
   //              |--|-|    <--    |--|-|
 
 
   // After the CAS loop above but before the next statement below:
 
   // nullptr <--  |--|-|    -->    |--|-|    -->    |--|-|    -->  nullptr
-  //              |  | |           |  | |           |  | |                
-  //              |--|-|    <--    |--|-|           |--|-|            
+  //              |  | |           |  | |           |  | |
+  //              |--|-|    <--    |--|-|           |--|-|
   //                   ^                             |
   //                    \___________________________/
 
 
   // Suppose two threads complete the CAS loop but neither has hit the
   // next statement below. This is what the list looks like:
-  
+
   // nullptr <--  |--|-|    -->    |--|-|    -->    |--|-|    -->   |--|-|    -->  nullptr
-  //              |  | |           |  | |           |  | |          |  | |                
-  //              |--|-|    <--    |--|-|           |--|-|          |--|-|            
+  //              |  | |           |  | |           |  | |          |  | |
+  //              |--|-|    <--    |--|-|           |--|-|          |--|-|
   //                 ^ ^                             |                ^
   //                 |  \___________________________/                 |
   //                 |                                                |
   //                  \______________________________________________/
-			
+
   // Since each thread is pointing to the node it just inserted, and
   // the next pointers are correct after the CAS loop, each will fix
   // the prev pointer of the node after the one it just inserted, so
@@ -90,7 +90,7 @@ template <typename T>
 T LockFreeLinkedList<T>::PopFront() {
   LinkedListNode<T>* node;
   T retVal;
-  
+
   do {
     node = head_->next.load();
     retVal = node->data;
@@ -103,14 +103,14 @@ T LockFreeLinkedList<T>::PopFront() {
   // Suppose you start with this linked list:
   //
   // nullptr <--  |--|-|    -->    |--|-|    -->     nullptr
-  //              |  | |           |  | |        
+  //              |  | |           |  | |
   //              |--|-|    <--    |--|-|
   //
   // Now the CAS loop of PushFront executes but not the final pointer update:
   //
   // nullptr <--  |--|-|    -->    |--|-|    -->    |--|-|    -->  nullptr
-  //              |  | |           |  | |           |  | |                
-  //              |--|-|    <--    |--|-|           |--|-|            
+  //              |  | |           |  | |           |  | |
+  //              |--|-|    <--    |--|-|           |--|-|
   //                   ^                             |
   //                    \___________________________/
 
@@ -120,8 +120,8 @@ T LockFreeLinkedList<T>::PopFront() {
   //                    /                           \
   //                   /                            \/
   // nullptr <--  |--|-|           |--|-|    -->    |--|-|    -->  nullptr
-  //              |  | |           |  | |           |  | |                
-  //              |--|-|    <--    |--|-|           |--|-|            
+  //              |  | |           |  | |           |  | |
+  //              |--|-|    <--    |--|-|           |--|-|
   //                   ^                             |
   //                    \___________________________/
   //
@@ -134,12 +134,12 @@ T LockFreeLinkedList<T>::PopFront() {
   // 2) If the rest of PopFront executes before PushFront finishes,
   // when PushFront finishes, there will be a dereference of deleted
   // memory.
-  // 
+  //
   // 3) If the first line of the rest of PopFront executes, then
   // PushFront finishes, we'll be bad, because we'll have overwritten
   // the prev pointer of node->next to point to a deleted node.
   //
-  // Still scratching my head over this. 
+  // Still scratching my head over this.
   node->next->prev = head_;
   delete node;
   return std::move(retVal);
@@ -149,12 +149,12 @@ template <typename T>
 T LockFreeLinkedList<T>::PopBack() {
   LinkedListNode<T>* node;
   T retVal;
-  
+
   do {
     node = tail_->prev.load();
     retVal = node->data;
   } while (!tail_->prev.compare_exchange_weak(node, node->prev));
-  
+
   node->prev->next = tail_;
   delete node;
   return std::move(retVal);
@@ -171,4 +171,3 @@ void LockFreeLinkedList<T>::DumpListToFile(string filename) const {
   of.close();
   cout << endl;
 }
-

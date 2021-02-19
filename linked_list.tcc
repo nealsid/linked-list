@@ -50,7 +50,7 @@ T LockedLinkedList<T>::PopFront() {
     head_->next = node->next;
     head_->next->prev = head_;
   }
-  
+
   T retVal = std::move(node->data);
   delete node;
   return std::move(retVal);
@@ -66,7 +66,7 @@ T LockedLinkedList<T>::PopBack() {
     tail_->prev = node->prev;
     tail_->prev->next = tail_;
   }
-  
+
   T retVal = std::move(node->data);
   delete node;
   return std::move(retVal);
@@ -83,4 +83,3 @@ void LockedLinkedList<T>::DumpListToFile(string filename) const {
   of.close();
   cout << endl;
 }
-
