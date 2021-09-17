@@ -14,3 +14,5 @@ linked_list_test
 
 *.dSYM
 \#*\#
+lltest
+*_contention_measurements.txt

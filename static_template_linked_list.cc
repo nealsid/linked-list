@@ -12,4 +12,7 @@ int main(int argc, char* argv[]) {
   cout << ((srch && srch.value() == 5) ? "true" : "false") << endl;
   srch = find(l, 29);
   cout << ((srch && srch.value() == 29) ? "true" : "false") << endl;
+
+  cout << "reallyCount: " << reallyCount(l) << endl;
+  cout << "count: " << count(l) << endl;
 }
