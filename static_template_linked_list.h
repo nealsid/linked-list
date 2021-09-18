@@ -10,7 +10,7 @@ struct LinkedList {
 };
 
 template<typename T>
-struct LinkedList<0, T> {
+struct LinkedList<1, T> {
   optional<T> data;
 };
 
